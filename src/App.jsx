@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useGeolocated } from "react-geolocated";
 import "./styles/app.css";
+import axios from "axios";
 const App = () => {
-  const [location, setLocation] = useState({
+  const [location, setlocation] = useState({
     latitude: "",
     longitude: "",
   });
-  const [error, setError] = useState("");
 
+  //Get location using react-geolocated library
   const { coords, isGeolocationAvailable, isGeolocationEnabled } =
     useGeolocated({
       positionOptions: {
@@ -17,39 +18,52 @@ const App = () => {
       userDecisionTimeout: null,
     });
 
-  if (!isGeolocationAvailable) {
-    setError("Your browser does not support Geolocation");
-  }
-  if (!isGeolocationEnabled) {
-    setError("Geolocation is not enabled");
-  } else {
-    coords &&
-      setLocation({ latitude: coords.latitude, longitude: coords.longitude });
-  }
+  const [weatherData, setweatherData] = useState();
 
-  return (
-    <div>
-      <h1 className="header">Weather App</h1>
-      {error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : (
-        <p style={{ color: "green" }}>
-          Your location is latitude: {location.latitude}, longitude:{" "}
-          {location.longitude}
-        </p>
-      )}
-    </div>
-  );
+  useEffect(() => {
+    const getWeatherData = async () => {
+      //template literal le string bhitra variable halna milxa
+      const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${
+        coords.latitude
+      }&lon=${coords.longitude}&exclude=minutely,hourly,daily&appid=${
+        import.meta.env.VITE_APIKEY
+      }`;
+
+      // try {
+      //   const weatherData = await axios.get(apiUrl);
+      //   console.log(weatherData);
+      // } catch (error) {
+      //   console.log(error);
+      // }
+    };
+    getWeatherData();
+    console.log(import.meta.env.VITE_APIKEY);
+  }, []);
+
+  if (!isGeolocationAvailable) {
+    return (
+      <div className="error">Your browser does not support Geolocation</div>
+    );
+  } else if (isGeolocationEnabled) {
+    return (
+      <div>
+        <h1 className="header">Weather App</h1>
+        {coords ? (
+          <p>
+            Latitude: {coords.latitude} Longitude: {coords.longitude}
+          </p>
+        ) : (
+          <p>Getting your location, please wait...</p>
+        )}
+      </div>
+    );
+  } else {
+    return (
+      <div className="error">
+        Geolocation is not enabled, Please enable it to continue
+      </div>
+    );
+  }
 };
 
 export default App;
-
-// if (location.latitude == "") 
-
-// if (!isGeolocationAvailable) {
-//   setError("Your browser does not support Geolocation");
-// } else if (!isGeolocationEnabled) {
-//   setError("Geolocation is not enabled");
-// } else {
-//   setLocation({ latitude: coords.latitude, longitude: coords.longitude });
-// }
